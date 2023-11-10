@@ -82,7 +82,7 @@ def prepare_np_for_ANN(array):
   print(array.ndim)
   if array.ndim == 3:
     array = array.reshape(array.shape[0], array.shape[1]*array.shape[2])
-  return array
+  return array, array[0].shape
 
 def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, dir="model_dump"):
   # Various Scalers: https://towardsdatascience.com/scale-standardize-or-normalize-with-scikit-learn-6ccc7d176a02
@@ -153,7 +153,7 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
     elif outputs == 2:
       loss = 'binary_crossentropy'
     else:
-      loss = 'categorical_crossentropy'
+      loss = 'sparse_categorical_crossentropy'
   
   # assign output layer activation and metrics
   if outputs == 1:
@@ -170,6 +170,12 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
   if optimizer == 'default':
     optimizer = 'adam'
 
+  # calculate units in output layer
+  if outputs < 3:
+    units = 1
+  else:
+    units = outputs
+
   num_layers = len(model.layers)
   
   # add output layer
@@ -177,9 +183,9 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
   print('settings: ', activation, loss, optimizer, metrics)
 
   if num_layers > 0:
-    model.add(Dense(units=1, activation=activation))
+    model.add(Dense(units=units, activation=activation))
   else:
-    model.add(Dense(units=1, activation=activation, input_shape=X_train[0].shape))
+    model.add(Dense(units=units, activation=activation, input_shape=X_train[0].shape))
   
   model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
