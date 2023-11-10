@@ -96,7 +96,7 @@ def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, 
   # Use one-hot encoding for all categorical X values
   for column in X_columns:
     if df[column].dtype == 'object':
-      encoder = OneHotEncoder(sparse_output=False).set_output(transform="pandas")
+      encoder = OneHotEncoder(sparse_output=False, drop='first').set_output(transform="pandas")
       one_hot_encoded=encoder.fit_transform(X[[column]])
       X = pd.concat([X,one_hot_encoded],axis=1).drop(columns=[column])
       # TODO: Save the encoder here
