@@ -13,6 +13,27 @@ from sklearn.metrics import confusion_matrix
 
 # Data Preparation
 
+# show images
+def show_image(image, title=None):
+  plt.figure()
+  plt.imshow(image)
+  plt.colorbar()
+  plt.grid(False)
+  if (title != None):
+    plt.title(title)
+  plt.show()
+
+def show_indexed_images(images, indexes, labels):
+  plt.figure(figsize=(9,9))
+  for i in range(16):
+    plt.subplot(4,4,i+1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.grid(False)
+    plt.imshow(images[i])
+    plt.xlabel(f"{labels[indexes[i]]} ({indexes[i]})")
+  plt.show()
+
 # Plot Loss and Accuracy
 def plot_loss_curves(history):
   keys = history.history.keys()
@@ -48,7 +69,6 @@ def plot_loss_curves(history):
   plt.xlabel('Epochs')
   plt.legend();
 
-# show confusion matrix
 def show_confusion_matrix_for_binary_classification(model, X_test, y_test):
   y_pred = model.predict(X_test)
   y_pred = [0 if val < 0.5 else 1 for val in y_pred]
@@ -58,9 +78,14 @@ def show_confusion_matrix_for_binary_classification(model, X_test, y_test):
   eval = confusion_matrix(y_test, y_pred)
   print(eval)
 
+def prepare_np_for_ANN(array):
+  print(array.ndim)
+  if array.ndim == 3:
+    array = array.reshape(array.shape[0], array.shape[1]*array.shape[2])
+  return array
 
-# Various Scalers: https://towardsdatascience.com/scale-standardize-or-normalize-with-scikit-learn-6ccc7d176a02
 def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, dir="model_dump"):
+  # Various Scalers: https://towardsdatascience.com/scale-standardize-or-normalize-with-scikit-learn-6ccc7d176a02
   df=df.dropna()
 
   # assign and save the X columns 
@@ -180,9 +205,6 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
 def get_value_prediction(model, input):
   return model.predict(input)[0][0]
   
-
-
-
 # Visualizing Data
 def line_plot(X, y, xlabel='', ylabel='', title=''):
   plt.plot(X, y)
