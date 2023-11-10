@@ -32,6 +32,17 @@ def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, 
   # assign the y column
   y = df[y_column]
 
+  # numericize the y labels if needed
+  
+  if df[y_column[0]].dtype == 'object':
+    uniques = df[y_column[0]].unique()
+    num_uniques = len(uniques)
+    if num_uniques == 2:
+      label_encoder = LabelEncoder()
+      labels = label_encoder.fit_transform(df[y_column[0]]) # numpy array
+      y = pd.DataFrame({y_column[0]: labels})
+      #y = labels
+
   # split the data
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
 
@@ -46,8 +57,9 @@ def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, 
         X_test[column] = encoder.transform(X_test[[column]])
         # TODO: Save Scaler
 
-  # TODO: If y column is categorical then one hot encode y column
+ 
 
+  print('out')
   input_shape = X_train.values[0].shape
 
   return X_train, X_test, y_train, y_test, input_shape
@@ -69,8 +81,21 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
   if loss == 'default':
     if outputs == 1:
       loss = 'mean_squared_error'
+    elif outputs == 2:
+      loss = 'binary_crossentropy'
     else:
       loss = 'categorical_crossentropy'
+  
+  # assign output layer activation and metrics
+  if outputs == 1:
+    activation = None
+    metrics = 'mae'
+  elif outputs == 2:
+    activation = 'sigmoid'
+    metrics = 'accuracy'
+  else:
+    activation = 'softmax'
+    metrics = 'accuracy'
 
   # assign optimizer
   if optimizer == 'default':
@@ -79,14 +104,15 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
   num_layers = len(model.layers)
   
   # add output layer
-  if outputs == 1:
-    if num_layers > 0:
-      model.add(Dense(units=1))
-    else:
-      model.add(Dense(units=1, input_shape=X_train[0].shape))
+  
+  print('settings: ', activation, loss, optimizer, metrics)
 
-  # compile
-  model.compile(optimizer=optimizer, loss=loss)
+  if num_layers > 0:
+    model.add(Dense(units=1, activation=activation))
+  else:
+    model.add(Dense(units=1, activation=activation, input_shape=X_train[0].shape))
+  
+  model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
   # add callbacks
   callbacks = []
