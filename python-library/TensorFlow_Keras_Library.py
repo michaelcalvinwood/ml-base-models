@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, LabelEncoder
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix
 
 # Data Preparation
 
@@ -46,6 +47,17 @@ def plot_loss_curves(history):
   plt.title('Accuracy')
   plt.xlabel('Epochs')
   plt.legend();
+
+# show confusion matrix
+def show_confusion_matrix_for_binary_classification(model, X_test, y_test):
+  y_pred = model.predict(X_test)
+  y_pred = [0 if val < 0.5 else 1 for val in y_pred]
+  eval_model=model.evaluate(X_test, y_test)
+  print('Model Evaluation:\n', eval_model)
+  print('\n\nConfusion Matrix:\n')
+  eval = confusion_matrix(y_test, y_pred)
+  print(eval)
+
 
 # Various Scalers: https://towardsdatascience.com/scale-standardize-or-normalize-with-scikit-learn-6ccc7d176a02
 def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, dir="model_dump"):
@@ -160,6 +172,8 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
   # Plot Loss
   if plot_loss:
     plot_loss_curves(history)
+
+  if outputs == 2 and X_validate is not None and y_validate is not None: show_confusion_matrix_for_binary_classification(model, X_validate, y_validate)
   
   return model, history
 
