@@ -12,6 +12,41 @@ from sklearn.preprocessing import StandardScaler
 
 # Data Preparation
 
+# Plot Loss and Accuracy
+def plot_loss_curves(history):
+  keys = history.history.keys()
+
+  if 'loss' in keys: 
+    loss = history.history['loss']
+  else:
+    return
+  
+  if 'val_loss' in keys: val_loss = history.history['val_loss']
+
+  if 'accuracy' in keys: accuracy = history.history['accuracy']
+  if 'val_accuracy' in keys: val_accuracy = history.history['val_accuracy']
+
+  epochs = range(len(history.history['loss']))
+
+  # Plot loss
+  plt.plot(epochs, loss, label='training_loss')
+  if 'val_loss' in keys: plt.plot(epochs, val_loss, label='val_loss')
+  plt.title('Loss')
+  plt.xlabel('Epochs')
+  plt.legend()
+
+  # Plot accuracy
+  plt.figure()
+  if 'accuracy' in keys: 
+    plt.plot(epochs, accuracy, label='training_accuracy')
+  else:
+    return
+  
+  if 'val_accuracy' in keys: plt.plot(epochs, val_accuracy, label='val_accuracy')
+  plt.title('Accuracy')
+  plt.xlabel('Epochs')
+  plt.legend();
+
 # Various Scalers: https://towardsdatascience.com/scale-standardize-or-normalize-with-scikit-learn-6ccc7d176a02
 def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, dir="model_dump"):
   df=df.dropna()
@@ -57,9 +92,6 @@ def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, 
         X_test[column] = encoder.transform(X_test[[column]])
         # TODO: Save Scaler
 
- 
-
-  print('out')
   input_shape = X_train.values[0].shape
 
   return X_train, X_test, y_train, y_test, input_shape
@@ -127,17 +159,7 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
   
   # Plot Loss
   if plot_loss:
-    if (X_validate is not None) and (y_validate is not None):
-      print(history.history.keys())
-    else:
-      #print(history.history.keys())
-      # Lets plot the loss
-      plt.plot(history.history['loss'])
-      plt.title('Model loss')
-      plt.ylabel('Loss')
-      plt.xlabel('Number of epochs')
-      plt.legend(['loss plot'], loc='upper right')
-      plt.show()
+    plot_loss_curves(history)
   
   return model, history
 
