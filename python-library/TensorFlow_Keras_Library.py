@@ -64,7 +64,7 @@ def build_ANN(input_shape, layers=[10]):
       model.add(Dense(units=units))
   return model
 
-def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', optimizer='default', plot_loss=True, plot_accuracy=True):
+def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True):
   # assign loss
   if loss == 'default':
     if outputs == 1:
@@ -88,11 +88,16 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
   # compile
   model.compile(optimizer=optimizer, loss=loss)
 
+  # add callbacks
+  callbacks = []
+  if early_stop:
+    callbacks.append(keras.callbacks.EarlyStopping(monitor='loss', patience=4, min_delta=.0001, restore_best_weights=True))
+
   # fit
   if (X_validate is not None) and (y_validate is not None):
-    history = model.fit(X_train, y_train, epochs=epochs, validation_data=(X_validate, y_validate), verbose=verbose)
+    history = model.fit(X_train, y_train, epochs=epochs, validation_data=(X_validate, y_validate), verbose=verbose, callbacks=callbacks)
   else:
-    history = model.fit(X_train, y_train, epochs=epochs, verbose=verbose)
+    history = model.fit(X_train, y_train, epochs=epochs, verbose=verbose, callbacks=callbacks)
   
   # Plot Loss
   if plot_loss:
