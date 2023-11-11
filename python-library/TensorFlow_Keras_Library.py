@@ -153,8 +153,11 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
     elif outputs == 2:
       loss = 'binary_crossentropy'
     else:
-      loss = 'sparse_categorical_crossentropy'
-  
+      if len(y_train[0]) == 1:
+        loss = 'sparse_categorical_crossentropy'
+      else:
+        loss = 'categorical_crossentropy'
+        
   # assign output layer activation and metrics
   if outputs == 1:
     activation = None
