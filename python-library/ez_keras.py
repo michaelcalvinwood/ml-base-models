@@ -78,10 +78,23 @@ def show_confusion_matrix_for_binary_classification(model, X_test, y_test):
   eval = confusion_matrix(y_test, y_pred)
   print(eval)
 
+def prepare_images_for_ANN(array):
+  print(array.ndim)
+  max = array[0].max()
+  if max > 1:
+    array = array / 255.0
+  if array.ndim == 3:
+    array = array.reshape(array.shape[0], array.shape[1]*array.shape[2])
+  elif array.ndim == 4:
+    array = array.reshape(array.shape[0], array.shape[1]*array.shape[2]*array.shape[3])
+  return array, array[0].shape
+
 def prepare_np_for_ANN(array):
   print(array.ndim)
   if array.ndim == 3:
     array = array.reshape(array.shape[0], array.shape[1]*array.shape[2])
+  elif array.ndim == 4:
+    array = array.reshape(array.shape[0], array.shape[1]*array.shape[2]*array.shape[3])
   return array, array[0].shape
 
 def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, dir="model_dump"):
