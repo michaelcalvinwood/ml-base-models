@@ -259,8 +259,8 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
 
   # Display the number of epochs used
   print(f"\n\nNumber of epochs trained for: {len(history.history['loss'])}")
-  if metrics == 'accuracy':
-    test_loss, test_acc=model.evaluate(x_test,y_test)
+  if metrics == 'accuracy' and X_validate is not None and y_validate is not None: 
+    test_loss, test_acc=model.evaluate(X_validate, y_validate)
     print('Test Accuracy: ', test_acc)
 
   # Plot Loss
@@ -283,3 +283,16 @@ def line_plot(X, y, xlabel='', ylabel='', title=''):
   plt.show()
 
 #line_plot(X, y, 'Hours of Study', 'Test Score', 'Test Scores from Hours of Study')
+
+import requests
+def download_to_google_drive(path, filename, url):
+  file_name = f"{path}{filename}"
+  r = requests.get(url, stream = True)
+  
+  with open(file_name, "wb") as file:
+      for block in r.iter_content(chunk_size = 1024): 
+          if block:  
+              file.write(block)
+
+####download_to_google_drive('/content/drive/MyDrive/datasets/weather/', 'weather.zip', 'https://ml-datasets.nyc3.digitaloceanspaces.com/images_multi-classification/weather_01.zip')
+
