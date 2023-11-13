@@ -178,6 +178,25 @@ def build_ANN(input_shape, layers=[10]):
       model.add(Dense(units=units))
   return model
 
+def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[]):
+  model = keras.models.Sequential()
+  for index, layer in enumerate(layers):
+    layer_type = layer[0]
+    if layer_type == 'c':
+      kernel_size = layer[1]
+      if index == 0: 
+        model.add(keras.layers.Conv2D(kernel_size, (3, 3), activation='relu', input_shape=input_shape))
+      else:
+        model.add(keras.layers.Conv2D(kernel_size, (3, 3), activation='relu'))
+    elif layer_type == 'p':
+      pool_size = layer[1]
+      model.add(keras.layers.MaxPooling2D((pool_size, pool_size)))
+  model.add(tf.keras.layers.Flatten())
+  if len(dense) > 0:
+    for units in dense:
+      model.add(tf.keras.layers.Dense(units, activation='relu'))
+  return model
+
 def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
               optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001):
   #optimizers = ['adam', 'rmsprop', 'sgd']
