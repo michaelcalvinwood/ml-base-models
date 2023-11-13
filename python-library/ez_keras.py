@@ -166,7 +166,7 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
     elif outputs == 2:
       loss = 'binary_crossentropy'
     else:
-      if len(y_train[0]) == 1:
+      if y_train[0].ndim == 0:
         loss = 'sparse_categorical_crossentropy'
       else:
         loss = 'categorical_crossentropy'
