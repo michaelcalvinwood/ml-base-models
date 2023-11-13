@@ -285,7 +285,7 @@ def line_plot(X, y, xlabel='', ylabel='', title=''):
 #line_plot(X, y, 'Hours of Study', 'Test Score', 'Test Scores from Hours of Study')
 
 import requests
-def download_to_google_drive(path, filename, url):
+def download_to_drive(path, filename, url):
   file_name = f"{path}{filename}"
   r = requests.get(url, stream = True)
   
@@ -296,3 +296,10 @@ def download_to_google_drive(path, filename, url):
 
 ####download_to_google_drive('/content/drive/MyDrive/datasets/weather/', 'weather.zip', 'https://ml-datasets.nyc3.digitaloceanspaces.com/images_multi-classification/weather_01.zip')
 
+import zipfile
+def unzip_file(path, filename):
+  file = f"{path}{filename}"
+  with zipfile.ZipFile(file, 'r') as zip_ref:
+      zip_ref.extractall(path)
+
+#####unzip_file('/content/drive/MyDrive/datasets/weather/', 'weather.zip')
