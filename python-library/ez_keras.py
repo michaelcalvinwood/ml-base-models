@@ -11,6 +11,17 @@ from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
 
+
+# Custom Callbacks
+class EarlyStop(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs={}):
+        if logs.get('val_accuracy') > 0.85:
+            print("\n\n85% validation accuracy has been reached.")
+            self.model.stop_training = True
+
+#####callback = EarlyStop()
+
+
 # Data Preparation
 
 # show images
@@ -89,6 +100,15 @@ def prepare_images_for_ANN(array):
     array = array.reshape(array.shape[0], array.shape[1]*array.shape[2]*array.shape[3])
   return array, array[0].shape
 
+def prepare_images_for_CNN(array):
+  print(array.ndim)
+  max = array[0].max()
+  if max > 1:
+    array = array / 255.0
+  if array.ndim == 3:
+    array = tf.expand_dims(array,axis=-1)
+  return array, array[0].shape
+
 def prepare_np_for_ANN(array):
   print(array.ndim)
   if array.ndim == 3:
@@ -160,6 +180,7 @@ def build_ANN(input_shape, layers=[10]):
 
 def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
               optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001):
+  #optimizers = ['adam', 'rmsprop', 'sgd']
   # assign loss
   if loss == 'default':
     if outputs == 1:
@@ -185,7 +206,7 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
 
   # assign optimizer
   if optimizer == 'default':
-    optimizer = tf.keras.optimizers.Adam(lr=learning_rate)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
   # calculate units in output layer
   if outputs < 3:
@@ -219,6 +240,9 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
 
   # Display the number of epochs used
   print(f"\n\nNumber of epochs trained for: {len(history.history['loss'])}")
+  if metrics == 'accuracy':
+    test_loss, test_acc=model.evaluate(x_test,y_test)
+    print('Test Accuracy: ', test_acc)
 
   # Plot Loss
   if plot_loss:
