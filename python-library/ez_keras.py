@@ -158,7 +158,8 @@ def build_ANN(input_shape, layers=[10]):
       model.add(Dense(units=units))
   return model
 
-def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True):
+def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
+              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001):
   # assign loss
   if loss == 'default':
     if outputs == 1:
@@ -184,7 +185,7 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
 
   # assign optimizer
   if optimizer == 'default':
-    optimizer = 'adam'
+    optimizer = tf.keras.optimizers.Adam(lr=learning_rate)
 
   # calculate units in output layer
   if outputs < 3:
