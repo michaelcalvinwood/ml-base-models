@@ -215,7 +215,10 @@ def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y
     history = model.fit(X_train, y_train, epochs=epochs, validation_data=(X_validate, y_validate), verbose=verbose, callbacks=callbacks)
   else:
     history = model.fit(X_train, y_train, epochs=epochs, verbose=verbose, callbacks=callbacks)
-  
+
+  # Display the number of epochs used
+  print(f"\n\nNumber of epochs trained for: {len(history.history['loss'])}")
+
   # Plot Loss
   if plot_loss:
     plot_loss_curves(history)
