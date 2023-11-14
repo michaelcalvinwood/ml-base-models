@@ -24,6 +24,13 @@ class EarlyStop(tf.keras.callbacks.Callback):
 
 # Data Preparation
 
+def scalar_labels_to_one_hot_encoded(labels, num_classes='auto'):
+  if num_classes == 'auto':
+    num_classes = np.max(labels) + 1
+  return tf.keras.utils.to_categorical(labels, num_classes)
+
+  
+
 # show images
 def show_image(image, title=None):
   plt.figure()
@@ -197,8 +204,8 @@ def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[]):
       model.add(tf.keras.layers.Dense(units, activation='relu'))
   return model
 
-def run_model(model, X_train, y_train, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
-              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001):
+def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
+              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001, img_train=None, img_validate=None):
   #optimizers = ['adam', 'rmsprop', 'sgd']
   # assign loss
   if loss == 'default':
@@ -283,9 +290,10 @@ def line_plot(X, y, xlabel='', ylabel='', title=''):
   plt.show()
 
 #line_plot(X, y, 'Hours of Study', 'Test Score', 'Test Scores from Hours of Study')
-
+import pathlib
 import requests
 def download_to_drive(path, filename, url):
+  pathlib.Path(path).mkdir(parents=True, exist_ok=True)
   file_name = f"{path}{filename}"
   r = requests.get(url, stream = True)
   
