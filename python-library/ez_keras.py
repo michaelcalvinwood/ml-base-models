@@ -2,6 +2,9 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import os
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -20,6 +23,62 @@ class EarlyStop(tf.keras.callbacks.Callback):
             self.model.stop_training = True
 
 #####callback = EarlyStop()
+
+# Data Loading
+
+def retrieve_image_data(images_dir, batch_size=64, target_image_size=(224, 224)):
+  # ImageDataGenerator is deprecated: https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
+  # Use this instead: https://www.tensorflow.org/api_docs/python/tf/keras/utils/image_dataset_from_directory
+  train_dir = images_dir + 'train/'
+  test_dir = images_dir + 'test/'
+  val_dir = images_dir + 'validation/'
+
+  train_datagen = ImageDataGenerator(rescale=1./255)
+  val_datagen = ImageDataGenerator(rescale=1./255)
+  test_datagen = ImageDataGenerator(rescale=1./255)
+
+  if not os.path.exists(train_dir):
+    print("Error: training directory does not exist")
+    return;
+
+  input_shape = target_image_size + (3,)
+    
+  train_labels = os.listdir(train_dir)
+  print(f"Labels: {train_labels}")
+  num_labels = len(train_labels)
+  if num_labels < 2:
+    print("Error: Insufficient number of labels")
+    return
+
+  if num_labels==2:
+    class_mode = "binary"
+  else:
+    class_mode = "categorical"
+
+  print("\ntrain_data:")
+  train_data = train_datagen.flow_from_directory(train_dir, batch_size=batch_size, target_size=target_image_size, class_mode=class_mode)
+
+  if os.path.exists(val_dir):  
+    val_labels = os.listdir(val_dir)
+    print("\nval_data:")
+    val_data = val_datagen.flow_from_directory(val_dir, batch_size=batch_size, target_size=target_image_size, class_mode=class_mode)
+  else:
+    print("No val_data")
+    val_dir = None
+    val_labels = None
+    val_data = None
+
+  if os.path.exists(test_dir):
+    test_labels = os.listdir(test_dir)
+    print("\ntest_data:")
+    test_data = test_datagen.flow_from_directory(val_dir, batch_size=batch_size, target_size=target_image_size, class_mode=class_mode)
+  else:
+    print("No test_data")
+    test_dir = None
+    test_labels = None
+    test_data = None
+  
+  return train_data, val_data, test_data, train_labels, val_labels, test_labels, train_dir, val_dir, test_dir, input_shape, num_labels
 
 # Data Analysis
 
