@@ -21,6 +21,11 @@ class EarlyStop(tf.keras.callbacks.Callback):
 
 #####callback = EarlyStop()
 
+# Data Analysis
+
+def show_images_directory_stats(images_dir):
+  for dirpath, dirnames, filenames in os.walk(images_dir):
+    print(f"There are {len(dirnames)} directories and {len(filenames)} images in '{dirpath}'.")
 
 # Data Preparation
 
