@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Flatten
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -28,8 +28,6 @@ def scalar_labels_to_one_hot_encoded(labels, num_classes='auto'):
   if num_classes == 'auto':
     num_classes = np.max(labels) + 1
   return tf.keras.utils.to_categorical(labels, num_classes)
-
-  
 
 # show images
 def show_image(image, title=None):
@@ -175,11 +173,13 @@ def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, 
 
 # Building and Running Models
 
-def build_ANN(input_shape, layers=[10]):
+def build_ANN(input_shape, layers=[10], flatten=False):
   model = Sequential()
+  if flatten == True:
+    model.add(Flatten(input_shape=input_shape))
   for index, units in enumerate(layers):
     print(units, index)
-    if index == 0:
+    if index == 0 and Flatten == False:
       model.add(Dense(units=units, input_shape=input_shape))
     else:
       model.add(Dense(units=units))
@@ -205,7 +205,7 @@ def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[]):
   return model
 
 def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
-              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001, train_data=None, validation_data=None):
+              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001, train_data=None, train_labels=None, validation_data=None):
   #optimizers = ['adam', 'rmsprop', 'sgd']
   # assign loss
   if loss == 'default':
@@ -214,8 +214,11 @@ def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_valida
     elif outputs == 2:
       loss = 'binary_crossentropy'
     else:
-      if y_train[0].ndim == 0:
-        loss = 'sparse_categorical_crossentropy'
+      if y_train is not None:
+        if y_train[0].ndim == 0:
+          loss = 'sparse_categorical_crossentropy'
+        else:
+          loss = 'categorical_crossentropy'
       else:
         loss = 'categorical_crossentropy'
         
@@ -264,9 +267,9 @@ def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_valida
   elif X_validate is not None:
     history = model.fit(X_train, y_train, epochs=epochs, verbose=verbose, callbacks=callbacks)
   elif (train_data is not None) and (validation_data is not None):
-    history = model.fit(train_data=train_data, validation_data=validation_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
+    history = model.fit(train_data, validation_data=validation_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
   else:
-    history = model.fit(train_data=train_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
+    history = model.fit(train_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
 
   # Display the number of epochs used
   print(f"\n\nNumber of epochs trained for: {len(history.history['loss'])}")
