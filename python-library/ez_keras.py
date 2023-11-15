@@ -205,7 +205,7 @@ def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[]):
   return model
 
 def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
-              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001, img_train=None, img_validate=None):
+              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001, train_data=None, validation_data=None):
   #optimizers = ['adam', 'rmsprop', 'sgd']
   # assign loss
   if loss == 'default':
@@ -261,8 +261,12 @@ def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_valida
   # fit
   if (X_validate is not None) and (y_validate is not None):
     history = model.fit(X_train, y_train, epochs=epochs, validation_data=(X_validate, y_validate), verbose=verbose, callbacks=callbacks)
-  else:
+  elif X_validate is not None:
     history = model.fit(X_train, y_train, epochs=epochs, verbose=verbose, callbacks=callbacks)
+  elif (train_data is not None) and (validation_data is not None):
+    history = model.fit(train_data=train_data, validation_data=validation_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
+  else:
+    history = model.fit(train_data=train_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
 
   # Display the number of epochs used
   print(f"\n\nNumber of epochs trained for: {len(history.history['loss'])}")
