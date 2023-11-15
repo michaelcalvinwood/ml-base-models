@@ -409,4 +409,33 @@ def unzip_file(path, filename):
   with zipfile.ZipFile(file, 'r') as zip_ref:
       zip_ref.extractall(path)
 
-#####unzip_file('/content/drive/MyDrive/datasets/weather/', 'weather.zip')
+##### Example: unzip_file('/content/drive/MyDrive/datasets/weather/', 'weather.zip')
+
+# Model Evaluation
+
+def evaluate_models(models, model_names,test_data):
+    # REWRITE THIS FUNCTION
+    import pandas as pd
+
+    # Initialize lists for the results
+    losses = []
+    accuracies = []
+
+    # Iterate over the models
+    for model in models:
+        # Evaluate the model
+        loss, accuracy = model.evaluate(test_data)
+        losses.append(loss)
+        accuracies.append(accuracy)
+       # Convert the results to percentages
+    losses = [round(loss * 100, 2) for loss in losses]
+    accuracies = [round(accuracy * 100, 2) for accuracy in accuracies]
+
+    # Create a dataframe with the results
+    results = pd.DataFrame({"Model": model_names,
+                            "Loss": losses,
+                            "Accuracy": accuracies})
+    
+    print(results)
+
+    return results
