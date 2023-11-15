@@ -86,6 +86,34 @@ def show_images_directory_stats(images_dir):
   for dirpath, dirnames, filenames in os.walk(images_dir):
     print(f"There are {len(dirnames)} directories and {len(filenames)} images in '{dirpath}'.")
 
+def view_random_images(target_dir, num_images):
+  """
+  REWRITE THIS FUNCTION
+  View num_images random images from the subdirectories of target_dir as a subplot.
+  """
+  # Get list of subdirectories
+  subdirs = [d for d in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, d))]
+
+  # Select num_images random subdirectories
+  random.shuffle(subdirs)
+  selected_subdirs = subdirs[:num_images]
+
+  # Create a subplot
+  fig, axes = plt.subplots(1, num_images, figsize=(15,9))
+  for i, subdir in enumerate(selected_subdirs):
+      # Get list of images in subdirectory
+      image_paths = [f for f in os.listdir(os.path.join(target_dir, subdir))]
+      # Select a random image
+      image_path = random.choice(image_paths)
+      # Load image
+      image = plt.imread(os.path.join(target_dir, subdir, image_path))
+      # Display image in subplot
+      axes[i].imshow(image)
+      axes[i].axis("off")
+      axes[i].set_title(subdir)
+  print(f"Shape of image: {image.shape}")    #width, height, colour channels
+  plt.show()
+
 # Data Preparation
 
 def scalar_labels_to_one_hot_encoded(labels, num_classes='auto'):
