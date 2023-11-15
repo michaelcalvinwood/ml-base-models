@@ -143,8 +143,40 @@ def show_indexed_images(images, indexes, labels):
   plt.show()
 
 # Plot Loss and Accuracy
+def plot_loss_accuracy(history_1):
+  # Extract the loss and accuracy history for both training and validation data
+  loss = history_1.history['loss']
+  val_loss = history_1.history['val_loss']
+  acc = history_1.history['accuracy']
+  val_acc = history_1.history['val_accuracy']
+
+  # Create subplots
+  fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 6))
+
+  # Plot the loss history
+  ax1.plot(loss, label='Training loss')
+  ax1.plot(val_loss, label='Validation loss')
+  ax1.set_title('Loss history')
+  ax1.set_xlabel('Epoch')
+  ax1.set_ylabel('Loss')
+  ax1.legend()
+
+  # Plot the accuracy history
+  ax2.plot(acc, label='Training accuracy')
+  ax2.plot(val_acc, label='Validation accuracy')
+  ax2.set_title('Accuracy history')
+  ax2.set_xlabel('Epoch')
+  ax2.set_ylabel('Accuracy')
+  ax2.legend()
+
+  plt.show()
+
 def plot_loss_curves(history):
   keys = history.history.keys()
+
+  if 'loss' in keys and 'val_loss' in keys and 'accuracy' in keys and 'val_accuracy' in keys:
+    plot_loss_accuracy(history)
+    return 
 
   if 'loss' in keys: 
     loss = history.history['loss']
@@ -297,7 +329,8 @@ def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[]):
   return model
 
 def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
-              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, learning_rate=0.001, train_data=None, train_labels=None, validation_data=None):
+              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, patience=5, 
+              learning_rate=0.001, train_data=None, train_labels=None, validation_data=None):
   #optimizers = ['adam', 'rmsprop', 'sgd']
   # assign loss
   if loss == 'default':
@@ -351,7 +384,7 @@ def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_valida
   # add callbacks
   callbacks = []
   if early_stop:
-    callbacks.append(keras.callbacks.EarlyStopping(monitor='loss', patience=4, min_delta=.0001, restore_best_weights=True))
+    callbacks.append(keras.callbacks.EarlyStopping(monitor='loss', patience=patience, min_delta=.0001, restore_best_weights=True))
 
   # fit
   if (X_validate is not None) and (y_validate is not None):
