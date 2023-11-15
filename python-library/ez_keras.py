@@ -26,14 +26,18 @@ class EarlyStop(tf.keras.callbacks.Callback):
 
 # Data Loading
 
-def retrieve_image_data(images_dir, batch_size=64, target_image_size=(224, 224)):
+def retrieve_image_data(images_dir, batch_size=64, target_image_size=(224, 224), augmentation=None):
   # ImageDataGenerator is deprecated: https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
   # Use this instead: https://www.tensorflow.org/api_docs/python/tf/keras/utils/image_dataset_from_directory
   train_dir = images_dir + 'train/'
   test_dir = images_dir + 'test/'
   val_dir = images_dir + 'validation/'
 
-  train_datagen = ImageDataGenerator(rescale=1./255)
+  if augmentation is None:
+    train_datagen = ImageDataGenerator(rescale=1./255)
+  else:
+    train_datagen = ImageDataGenerator(rescale=1./255, **augmentation)
+    
   val_datagen = ImageDataGenerator(rescale=1./255)
   test_datagen = ImageDataGenerator(rescale=1./255)
 
