@@ -313,7 +313,7 @@ def build_ANN(input_shape, layers=[10], flatten=False):
       model.add(Dense(units=units))
   return model
 
-def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[]):
+def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[], complex_head=[]):
   model = keras.models.Sequential()
   for index, layer in enumerate(layers):
     layer_type = layer[0]
@@ -327,6 +327,12 @@ def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[]):
       pool_size = layer[1]
       model.add(keras.layers.MaxPooling2D((pool_size, pool_size)))
   model.add(tf.keras.layers.Flatten())
+
+  if len(complex_head) > 0:
+    for layers in complex_head:
+      if layers[0] == 'l2':
+        model.add(tf.keras.layers.Dense(layers[1], activation="relu", kernel_regularizer=tf.keras.regularizers.l2(layers[2])))
+
   if len(dense) > 0:
     for units in dense:
       model.add(tf.keras.layers.Dense(units, activation='relu'))
