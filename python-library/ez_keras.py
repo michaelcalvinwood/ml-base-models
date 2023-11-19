@@ -330,10 +330,16 @@ def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[], 
 
   if len(complex_head) > 0:
     for layers in complex_head:
-      if layers[0] == 'l2':
+      layer = layers[0]
+      if layer == 'l2':
         model.add(tf.keras.layers.Dense(layers[1], activation="relu", kernel_regularizer=tf.keras.regularizers.l2(layers[2])))
-      elif layers[0] == 'l1':
+      elif layer == 'l1':
         model.add(tf.keras.layers.Dense(layers[1], activation="relu", kernel_regularizer=tf.keras.regularizers.l1(layers[2])))
+      elif layer == 'fc':
+        model.add(tf.keras.layers.Dense(layers[1], activation="relu"))
+      elif layer == 'do':
+        model.add(tf.keras.layers.Dropout(layers[1]))
+                  
 
   if len(dense) > 0:
     for units in dense:
