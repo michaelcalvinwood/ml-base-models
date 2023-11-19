@@ -347,7 +347,7 @@ def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[], 
       model.add(tf.keras.layers.Dense(units, activation='relu'))
   return model
 
-def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
+def train(model, X_train=None, y_train=None, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
               optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, monitor='loss', patience=5, min_delta=0,
               learning_rate=0.001, train_data=None, train_labels=None, validation_data=None):
   #optimizers = ['adam', 'rmsprop', 'sgd']
