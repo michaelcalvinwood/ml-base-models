@@ -36,6 +36,7 @@ def retrieve_image_data(images_dir, batch_size=64, target_image_size=(224, 224),
   if augmentation is None:
     train_datagen = ImageDataGenerator(rescale=1./255)
   else:
+    print('Using data augmentation')
     train_datagen = ImageDataGenerator(rescale=1./255, **augmentation)
     
   val_datagen = ImageDataGenerator(rescale=1./255)
@@ -390,7 +391,7 @@ def run_model(model, X_train=None, y_train=None, outputs=1, epochs=100, X_valida
   
   # add output layer
   
-  print('settings: ', activation, loss, optimizer, metrics)
+  print('settings: ', f"\tactivation: {activation}\n", f"\toptimizer: {optimizer}\n", f"\tloss: {loss}\n", f"metrics: {metrics}")
 
   if num_layers > 0:
     model.add(Dense(units=units, activation=activation))
@@ -487,6 +488,6 @@ def evaluate_models(models, model_names,test_data):
                             "Loss": losses,
                             "Accuracy": accuracies})
     
-    print(results)
+    print(results.sort_values(by='Accuracy', ascending=False).reset_index(drop=True).head())
 
     return results
