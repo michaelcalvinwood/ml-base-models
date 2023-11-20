@@ -26,17 +26,21 @@ class ez_keras:
 
   def __init__(self):
     self.model = Sequential()
+    self.keras = []
+    self.keras.append('model = Sequential()')
 
   def build_ANN(self,input_shape, layers=[10], flatten=False):
     if flatten == True:
       self.model.add(Flatten(input_shape=input_shape))
+      self.keras.append(f"model.add(Flatten(input_shape={input_shape}))")
     for index, units in enumerate(layers):
-      print(units, index)
-      if index == 0 and Flatten == False:
+      if index == 0 and flatten == False:
         self.model.add(Dense(units=units, input_shape=input_shape))
+        self.keras.append(f"model.add(Dense(units={units}, input_shape={input_shape}))")
       else:
         self.model.add(Dense(units=units))
-
+        self.keras.append(f"model.add(Dense(units={units}))")
+        
   def train(self, X_train=None, y_train=None, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
               optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, monitor='loss', patience=5, min_delta=0,
               learning_rate=0.001, train_data=None, train_labels=None, validation_data=None):
@@ -69,7 +73,9 @@ class ez_keras:
 
     # assign optimizer
     if optimizer == 'default':
-      optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+      #optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+      optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=learning_rate)
+      optimizer_str=f'tf.keras.optimizers.legacy.Adam(learning_rate={learning_rate})'
 
     # calculate units in output layer
     if outputs < 3:
@@ -78,29 +84,35 @@ class ez_keras:
       units = outputs
 
     num_layers = len(self.model.layers)
-    print(f"num_layers: {num_layers}")
     
     # add output layer
     
-    print('settings: ', f"\tactivation: {activation}\n", f"\toptimizer: {optimizer}\n", f"\tloss: {loss}\n", f"metrics: {metrics}")
+    #print('settings: ', f"\tactivation: {activation}\n", f"\toptimizer: {optimizer}\n", f"\tloss: {loss}\n", f"metrics: {metrics}")
 
     if num_layers > 0:
       self.model.add(Dense(units=units, activation=activation))
+      self.keras.append(f"model.add(Dense(units={units}, activation={activation}))")
     else:
       self.model.add(Dense(units=units, activation=activation, input_shape=X_train[0].shape))
+      self.keras.append(f"model.add(Dense(units={units}, activation={activation}, input_shape=X_train[0].shape))")
     
     self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
+    self.keras.append(f"model.compile(loss='{loss}', optimizer={optimizer_str}, metrics='{metrics}')")
 
     # add callbacks
     callbacks = []
+    callbacks_str = []
     if early_stop:
       callbacks.append(keras.callbacks.EarlyStopping(monitor=monitor, patience=patience, min_delta=min_delta, restore_best_weights=True))
+      callbacks_str.append(f"keras.callbacks.EarlyStopping(monitor='{monitor}', patience={patience}, min_delta={min_delta}, restore_best_weights=True)")
 
     # fit
     if (X_validate is not None) and (y_validate is not None):
       self.history = self.model.fit(X_train, y_train, epochs=epochs, validation_data=(X_validate, y_validate), verbose=verbose, callbacks=callbacks)
+      self.keras.append(f"history = model.fit(X_train, y_train, epochs={epochs}, validation_data=(X_validate, y_validate), verbose={verbose}, callbacks={callbacks_str})")
     elif X_train is not None:
       self.history = self.model.fit(X_train, y_train, epochs=epochs, verbose=verbose, callbacks=callbacks)
+      self.keras.append(f"history = model.fit(X_train, y_train, epochs={epochs}, verbose={verbose}, callbacks={callbacks_str})")
     elif (train_data is not None) and (validation_data is not None):
       self.history = self.model.fit(train_data, validation_data=validation_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
     else:
@@ -147,8 +159,9 @@ class ez_keras:
     plt.legend()
 
     # Plot accuracy
-    plt.figure()
+    
     if 'accuracy' in keys: 
+      plt.figure()
       plt.plot(epochs, accuracy, label='training_accuracy')
     else:
       plt.show()
@@ -159,6 +172,24 @@ class ez_keras:
     plt.xlabel('Epochs')
     plt.legend();
     plt.show()
+
+  def show_keras(self):
+    print("\nKeras:")
+    for command in self.keras:
+      print(command)
+
+  def prepare_np_for_ANN(array):
+    if array.ndim == 1:
+      array = tf.expand_dims(array, axis=-1)
+    elif array.ndim == 3:
+      array = array.reshape(array.shape[0], array.shape[1]*array.shape[2])
+    elif array.ndim == 4:
+      array = array.reshape(array.shape[0], array.shape[1]*array.shape[2]*array.shape[3])
+    elif array.ndim > 4:
+      print(f"Error: Cannot convert {array.ndim} dim array values")
+      return
+    
+    return array, array[0].shape
     
 #####callback = EarlyStop()
 
@@ -345,13 +376,7 @@ def prepare_images_for_CNN(array):
     array = tf.expand_dims(array,axis=-1)
   return array, array[0].shape
 
-def prepare_np_for_ANN(array):
-  print(array.ndim)
-  if array.ndim == 3:
-    array = array.reshape(array.shape[0], array.shape[1]*array.shape[2])
-  elif array.ndim == 4:
-    array = array.reshape(array.shape[0], array.shape[1]*array.shape[2]*array.shape[3])
-  return array, array[0].shape
+
 
 def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, dir="model_dump"):
   # Various Scalers: https://towardsdatascience.com/scale-standardize-or-normalize-with-scikit-learn-6ccc7d176a02
