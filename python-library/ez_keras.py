@@ -22,6 +22,144 @@ class EarlyStop(tf.keras.callbacks.Callback):
             print("\n\n85% validation accuracy has been reached.")
             self.model.stop_training = True
 
+class ez_keras:
+
+  def __init__(self):
+    self.model = Sequential()
+
+  def build_ANN(self,input_shape, layers=[10], flatten=False):
+    if flatten == True:
+      self.model.add(Flatten(input_shape=input_shape))
+    for index, units in enumerate(layers):
+      print(units, index)
+      if index == 0 and Flatten == False:
+        self.model.add(Dense(units=units, input_shape=input_shape))
+      else:
+        self.model.add(Dense(units=units))
+
+  def train(self, X_train=None, y_train=None, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
+              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, monitor='loss', patience=5, min_delta=0,
+              learning_rate=0.001, train_data=None, train_labels=None, validation_data=None):
+    #optimizers = ['adam', 'rmsprop', 'sgd']
+    # assign loss
+    if loss == 'default':
+      if outputs == 1:
+        loss = 'mean_squared_error'
+      elif outputs == 2:
+        loss = 'binary_crossentropy'
+      else:
+        if y_train is not None:
+          if y_train[0].ndim == 0:
+            loss = 'sparse_categorical_crossentropy'
+          else:
+            loss = 'categorical_crossentropy'
+        else:
+          loss = 'categorical_crossentropy'
+          
+    # assign output layer activation and metrics
+    if outputs == 1:
+      activation = None
+      metrics = 'mae'
+    elif outputs == 2:
+      activation = 'sigmoid'
+      metrics = 'accuracy'
+    else:
+      activation = 'softmax'
+      metrics = 'accuracy'
+
+    # assign optimizer
+    if optimizer == 'default':
+      optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+
+    # calculate units in output layer
+    if outputs < 3:
+      units = 1
+    else:
+      units = outputs
+
+    num_layers = len(self.model.layers)
+    print(f"num_layers: {num_layers}")
+    
+    # add output layer
+    
+    print('settings: ', f"\tactivation: {activation}\n", f"\toptimizer: {optimizer}\n", f"\tloss: {loss}\n", f"metrics: {metrics}")
+
+    if num_layers > 0:
+      self.model.add(Dense(units=units, activation=activation))
+    else:
+      self.model.add(Dense(units=units, activation=activation, input_shape=X_train[0].shape))
+    
+    self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
+
+    # add callbacks
+    callbacks = []
+    if early_stop:
+      callbacks.append(keras.callbacks.EarlyStopping(monitor=monitor, patience=patience, min_delta=min_delta, restore_best_weights=True))
+
+    # fit
+    if (X_validate is not None) and (y_validate is not None):
+      self.history = self.model.fit(X_train, y_train, epochs=epochs, validation_data=(X_validate, y_validate), verbose=verbose, callbacks=callbacks)
+    elif X_train is not None:
+      self.history = self.model.fit(X_train, y_train, epochs=epochs, verbose=verbose, callbacks=callbacks)
+    elif (train_data is not None) and (validation_data is not None):
+      self.history = self.model.fit(train_data, validation_data=validation_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
+    else:
+      self.history = self.model.fit(train_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
+
+    # Display the number of epochs used
+    print(f"\n\nNumber of epochs trained for: {len(self.history.history['loss'])}")
+    if metrics == 'accuracy' and X_validate is not None and y_validate is not None: 
+      test_loss, test_acc=self.model.evaluate(X_validate, y_validate)
+      print('Test Accuracy: ', test_acc)
+
+    # Plot Loss
+    if plot_loss:
+      self.plot_loss_curves()
+
+    if outputs == 2 and X_validate is not None and y_validate is not None: show_confusion_matrix_for_binary_classification(self.model, X_validate, y_validate)
+    
+    return self.model, self.history
+  
+  def plot_loss_curves(self):
+    keys = self.history.history.keys()
+
+    # if 'loss' in keys and 'val_loss' in keys and 'accuracy' in keys and 'val_accuracy' in keys:
+    #   plot_loss_accuracy(history)
+    #   return 
+
+    if 'loss' in keys: 
+      loss = self.history.history['loss']
+    else:
+      return
+    
+    if 'val_loss' in keys: val_loss = self.history.history['val_loss']
+
+    if 'accuracy' in keys: accuracy = self.history.history['accuracy']
+    if 'val_accuracy' in keys: val_accuracy = self.history.history['val_accuracy']
+
+    epochs = range(len(self.history.history['loss']))
+
+    # Plot loss
+    plt.plot(epochs, loss, label='training_loss')
+    if 'val_loss' in keys: plt.plot(epochs, val_loss, label='val_loss')
+    plt.title('Loss')
+    plt.xlabel('Epochs')
+    plt.legend()
+
+    # Plot accuracy
+    plt.figure()
+    if 'accuracy' in keys: 
+      plt.plot(epochs, accuracy, label='training_accuracy')
+    else:
+      plt.show()
+      return
+    
+    if 'val_accuracy' in keys: plt.plot(epochs, val_accuracy, label='val_accuracy')
+    plt.title('Accuracy')
+    plt.xlabel('Epochs')
+    plt.legend();
+    plt.show()
+    
 #####callback = EarlyStop()
 
 # Data Loading
@@ -176,43 +314,7 @@ def plot_loss_accuracy(history_1):
 
   plt.show()
 
-def plot_loss_curves(history):
-  keys = history.history.keys()
 
-  if 'loss' in keys and 'val_loss' in keys and 'accuracy' in keys and 'val_accuracy' in keys:
-    plot_loss_accuracy(history)
-    return 
-
-  if 'loss' in keys: 
-    loss = history.history['loss']
-  else:
-    return
-  
-  if 'val_loss' in keys: val_loss = history.history['val_loss']
-
-  if 'accuracy' in keys: accuracy = history.history['accuracy']
-  if 'val_accuracy' in keys: val_accuracy = history.history['val_accuracy']
-
-  epochs = range(len(history.history['loss']))
-
-  # Plot loss
-  plt.plot(epochs, loss, label='training_loss')
-  if 'val_loss' in keys: plt.plot(epochs, val_loss, label='val_loss')
-  plt.title('Loss')
-  plt.xlabel('Epochs')
-  plt.legend()
-
-  # Plot accuracy
-  plt.figure()
-  if 'accuracy' in keys: 
-    plt.plot(epochs, accuracy, label='training_accuracy')
-  else:
-    return
-  
-  if 'val_accuracy' in keys: plt.plot(epochs, val_accuracy, label='val_accuracy')
-  plt.title('Accuracy')
-  plt.xlabel('Epochs')
-  plt.legend();
 
 def show_confusion_matrix_for_binary_classification(model, X_test, y_test):
   y_pred = model.predict(X_test)
@@ -302,17 +404,7 @@ def prepare_df_for_ANN(df, X_columns, y_column, test_size=0.2, random_state=42, 
 
 # Building and Running Models
 
-def build_ANN(input_shape, layers=[10], flatten=False):
-  model = Sequential()
-  if flatten == True:
-    model.add(Flatten(input_shape=input_shape))
-  for index, units in enumerate(layers):
-    print(units, index)
-    if index == 0 and Flatten == False:
-      model.add(Dense(units=units, input_shape=input_shape))
-    else:
-      model.add(Dense(units=units))
-  return model
+
 
 def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[], complex_head=[]):
   model = keras.models.Sequential()
@@ -347,87 +439,7 @@ def build_CNN(input_shape, layers=[('c', 64),('p', 2)], flatten=True, dense=[], 
       model.add(tf.keras.layers.Dense(units, activation='relu'))
   return model
 
-def train(model, X_train=None, y_train=None, outputs=1, epochs=100, X_validate=None, y_validate=None, verbose=0, loss='default', 
-              optimizer='default', plot_loss=True, plot_accuracy=True, early_stop=True, monitor='loss', patience=5, min_delta=0,
-              learning_rate=0.001, train_data=None, train_labels=None, validation_data=None):
-  #optimizers = ['adam', 'rmsprop', 'sgd']
-  # assign loss
-  if loss == 'default':
-    if outputs == 1:
-      loss = 'mean_squared_error'
-    elif outputs == 2:
-      loss = 'binary_crossentropy'
-    else:
-      if y_train is not None:
-        if y_train[0].ndim == 0:
-          loss = 'sparse_categorical_crossentropy'
-        else:
-          loss = 'categorical_crossentropy'
-      else:
-        loss = 'categorical_crossentropy'
-        
-  # assign output layer activation and metrics
-  if outputs == 1:
-    activation = None
-    metrics = 'mae'
-  elif outputs == 2:
-    activation = 'sigmoid'
-    metrics = 'accuracy'
-  else:
-    activation = 'softmax'
-    metrics = 'accuracy'
 
-  # assign optimizer
-  if optimizer == 'default':
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-
-  # calculate units in output layer
-  if outputs < 3:
-    units = 1
-  else:
-    units = outputs
-
-  num_layers = len(model.layers)
-  
-  # add output layer
-  
-  print('settings: ', f"\tactivation: {activation}\n", f"\toptimizer: {optimizer}\n", f"\tloss: {loss}\n", f"metrics: {metrics}")
-
-  if num_layers > 0:
-    model.add(Dense(units=units, activation=activation))
-  else:
-    model.add(Dense(units=units, activation=activation, input_shape=X_train[0].shape))
-  
-  model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
-
-  # add callbacks
-  callbacks = []
-  if early_stop:
-    callbacks.append(keras.callbacks.EarlyStopping(monitor=monitor, patience=patience, min_delta=min_delta, restore_best_weights=True))
-
-  # fit
-  if (X_validate is not None) and (y_validate is not None):
-    history = model.fit(X_train, y_train, epochs=epochs, validation_data=(X_validate, y_validate), verbose=verbose, callbacks=callbacks)
-  elif X_validate is not None:
-    history = model.fit(X_train, y_train, epochs=epochs, verbose=verbose, callbacks=callbacks)
-  elif (train_data is not None) and (validation_data is not None):
-    history = model.fit(train_data, validation_data=validation_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
-  else:
-    history = model.fit(train_data, epochs=epochs, verbose=verbose, callbacks=callbacks)
-
-  # Display the number of epochs used
-  print(f"\n\nNumber of epochs trained for: {len(history.history['loss'])}")
-  if metrics == 'accuracy' and X_validate is not None and y_validate is not None: 
-    test_loss, test_acc=model.evaluate(X_validate, y_validate)
-    print('Test Accuracy: ', test_acc)
-
-  # Plot Loss
-  if plot_loss:
-    plot_loss_curves(history)
-
-  if outputs == 2 and X_validate is not None and y_validate is not None: show_confusion_matrix_for_binary_classification(model, X_validate, y_validate)
-  
-  return model, history
 
 def get_value_prediction(model, input):
   return model.predict(input)[0][0]
